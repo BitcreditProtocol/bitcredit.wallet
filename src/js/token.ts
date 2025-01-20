@@ -1,4 +1,8 @@
-import { type Token, getDecodedToken } from "@cashu/cashu-ts";
+import {
+  type Token,
+  getDecodedToken,
+  getEncodedBitcreditTokenV3,
+} from "@cashu/cashu-ts";
 import { useMintsStore, WalletProof } from "src/stores/mints";
 import { useProofsStore } from "src/stores/proofs";
 export default { decode, getProofs, getMint, getUnit, getMemo };
@@ -8,7 +12,29 @@ export default { decode, getProofs, getMint, getUnit, getMemo };
  */
 function decode(encoded_token: string) {
   if (!encoded_token || encoded_token === "") return;
-  return getDecodedToken(encoded_token);
+
+  try {
+    const decoded_token = getDecodedToken(encoded_token);
+
+    // temporarily adapt token and output it to console if token is of unit "crsat" but does not point to an ebill mint
+    if (decoded_token.unit === "crsat" && decoded_token.proofs.length > 0) {
+      const bill_id = decoded_token.proofs[0].id.slice(2);
+      const isEbillMint = decoded_token.mint.includes(`/${bill_id}/cr-sat`);
+      if (!isEbillMint) {
+        decoded_token.mint = `${decoded_token.mint.replace(
+          "bitcredit_mint",
+          "localhost"
+        )}/${bill_id}/cr-sat`;
+        const newly_encoded_token = getEncodedBitcreditTokenV3(decoded_token);
+        console.log(newly_encoded_token);
+      }
+    }
+
+    return decoded_token;
+  } catch (e) {
+    console.log("Error while decoding token", e);
+    throw e;
+  }
 }
 
 /**

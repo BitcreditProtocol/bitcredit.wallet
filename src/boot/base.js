@@ -59,6 +59,13 @@ window.windowMixin = {
       if (currency == "msat") return this.fromMsat(value);
       if (currency == "usd") value = value / 100;
       if (currency == "eur") value = value / 100;
+      if (currency.length !== 3) {
+        return (
+          new Intl.NumberFormat(window.LOCALE).format(value) +
+          " " +
+          currency.toUpperCase()
+        );
+      }
       return new Intl.NumberFormat(window.LOCALE, {
         style: "currency",
         currency: currency,
