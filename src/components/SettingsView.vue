@@ -77,6 +77,35 @@
         </q-item>
       </q-list>
     </div>
+
+    <div class="q-py-sm q-px-xs text-left" on-left>
+      <q-item>
+        <q-item-section>
+          <q-item-label overline class="text-weight-bold q-pt-sm"
+            >Bitcredit</q-item-label
+          >
+          <q-item-label caption> Bitcredit wallet settings. </q-item-label>
+        </q-item-section>
+      </q-item>
+      <div>
+        <!-- periodically check incoming invoices -->
+        <q-item>
+          <q-toggle
+            v-model="bitcreditEnableCombinedBalanceView"
+            label="Display combined balance view"
+            color="primary"
+          >
+          </q-toggle>
+        </q-item>
+        <q-item class="q-pt-none">
+          <q-item-label caption
+            >If enabled, the wallet will display all balances across all mints
+            in a single view.
+          </q-item-label>
+        </q-item>
+      </div>
+    </div>
+
     <!-- nostr -->
     <div class="q-py-sm q-px-sm text-left" on-left>
       <q-list padding>
@@ -1329,6 +1358,7 @@ export default defineComponent({
       "enableReceiveSwaps",
       "showNfcButtonInDrawer",
       "autoPasteEcashReceive",
+      "bitcreditEnableCombinedBalanceView",
     ]),
     ...mapState(useP2PKStore, ["p2pkKeys"]),
     ...mapWritableState(useP2PKStore, [
