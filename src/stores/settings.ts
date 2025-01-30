@@ -62,6 +62,10 @@ export const useSettingsStore = defineStore("settings", {
         "cashu.settings.autoPasteEcashReceive",
         true
       ),
+      bitcreditEnableCombinedBalanceView: useLocalStorage(
+        "cashu.settings.bitcreditEnableCombinedBalanceView",
+        true
+      ),
     };
   },
 });

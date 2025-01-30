@@ -27,180 +27,184 @@
       </div>
     </div>
 
-    <transition
-      appear
-      enter-active-class="animated fadeInDown"
-      leave-active-class="animated fadeInDown"
-      mode="out-in"
-      v-if="1 === 2"
-    >
-      <div>
-        <div
-          v-for="unit in combinedBalanceOptionsOfAllMints"
-          :key="unit.value"
-          class="row"
-        >
-          <div class="col-12 q-mb-sm">
-            <div v-if="unit.value === activeUnit">
-              <h3
-                class="q-my-none q-py-none cursor-pointer"
-                @click="toggleHideBalance"
-              >
-                <strong>
+    <div v-if="bitcreditEnableCombinedBalanceView">
+      <transition
+        appear
+        enter-active-class="animated fadeInDown"
+        leave-active-class="animated fadeInDown"
+        mode="out-in"
+      >
+        <div class="bg-transparent rounded-borders q-mb-xl q-mt-xl">
+          <div
+            v-for="unit in combinedBalanceOptionsOfAllMints"
+            :key="unit.value"
+            class="row"
+          >
+            <div class="col-12 q-mb-sm">
+              <div v-if="unit.value === activeUnit">
+                <h3
+                  class="q-my-none q-py-none cursor-pointer text-primary"
+                  @click="toggleHideBalance"
+                >
+                  <strong>
+                    <AnimatedNumber
+                      :value="getCombinedTotalBalancesOfAllMints[unit.value]"
+                      :format="(val) => formatCurrency(val, unit.value)"
+                      class="q-my-none q-py-none cursor-pointer"
+                    />
+                  </strong>
+                </h3>
+              </div>
+              <div v-else>
+                <h4
+                  class="q-my-none q-py-none cursor-pointer text-white"
+                  @click="toggleHideBalance"
+                >
                   <AnimatedNumber
                     :value="getCombinedTotalBalancesOfAllMints[unit.value]"
                     :format="(val) => formatCurrency(val, unit.value)"
                     class="q-my-none q-py-none cursor-pointer"
                   />
-                </strong>
-              </h3>
-            </div>
-            <div v-else>
-              <h4
-                class="q-my-none q-py-none cursor-pointer"
-                @click="toggleHideBalance"
-              >
-                <AnimatedNumber
-                  :value="getCombinedTotalBalancesOfAllMints[unit.value]"
-                  :format="(val) => formatCurrency(val, unit.value)"
-                  class="q-my-none q-py-none cursor-pointer"
-                />
-              </h4>
-            </div>
-            <div v-if="bitcoinPrice">
-              <strong
-                v-if="this.activeUnit == 'sat' || this.activeUnit == 'crsat'"
-              >
-                <AnimatedNumber
-                  :value="
-                    (bitcoinPrice / 100000000) *
-                    getCombinedTotalBalancesOfAllMints[unit.value]
-                  "
-                  :format="(val) => formatCurrency(val, 'USD')"
-                />
-              </strong>
-              <q-tooltip>
-                {{ formatCurrency(bitcoinPrice, "USD").slice(1) }}
-                USD/BTC</q-tooltip
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
-
-    <transition
-      appear
-      enter-active-class="animated fadeInDown"
-      leave-active-class="animated fadeInDown"
-      mode="out-in"
-      v-else
-    >
-      <q-carousel
-        v-model="this.activeUnit"
-        transition-prev="jump-up"
-        transition-next="jump-up"
-        swipeable
-        animated
-        :height="$q.screen.width < 390 ? '130px' : '80px'"
-        control-color="primary"
-        class="bg-transparent rounded-borders q-mb-xl q-mt-xl text-primary"
-      >
-        <!-- make a q-carousel-slide with v-for for all possible units -->
-        <q-carousel-slide
-          v-for="unit in balancesOptions"
-          :key="unit.value"
-          :name="unit.value"
-          class="q-pt-none"
-        >
-          <div class="row">
-            <div class="col-12">
-              <h3
-                class="q-my-none q-py-none cursor-pointer"
-                @click="toggleHideBalance"
-              >
-                <strong>
+                </h4>
+              </div>
+              <div v-if="bitcoinPrice" :class="{ invisible: hideBalance }">
+                <strong
+                  v-if="this.activeUnit == 'sat' || this.activeUnit == 'crsat'"
+                >
                   <AnimatedNumber
-                    :value="getTotalBalance"
-                    :format="(val) => formatCurrency(val, activeUnit)"
-                    class="q-my-none q-py-none cursor-pointer"
-                  />
-                </strong>
-              </h3>
-              <div v-if="bitcoinPrice">
-                <strong v-if="this.activeUnit == 'sat'">
-                  <AnimatedNumber
-                    :value="(bitcoinPrice / 100000000) * getTotalBalance"
+                    :value="
+                      (bitcoinPrice / 100000000) *
+                      getCombinedTotalBalancesOfAllMints[unit.value]
+                    "
                     :format="(val) => formatCurrency(val, 'USD')"
                   />
                 </strong>
-                <strong
-                  v-if="this.activeUnit == 'usd' || this.activeUnit == 'eur'"
-                >
-                  <AnimatedNumber
-                    :value="(getTotalBalance / 100 / bitcoinPrice) * 100000000"
-                    :format="(val) => formatCurrency(val, 'sat')"
-                  />
-                </strong>
-                <q-tooltip>
-                  {{ formatCurrency(bitcoinPrice, "USD").slice(1) }}
-                  USD/BTC</q-tooltip
-                >
               </div>
             </div>
           </div>
-        </q-carousel-slide>
-      </q-carousel>
-    </transition>
-    <div
-      v-if="activeMint().mint.errored"
-      class="row q-mt-md q-mb-none text-secondary"
-    >
-      <div class="col-12">
-        <q-badge outline color="red" class="q-mr-xs q-mt-sm text-weight-bold">
-          Mint error
-          <q-icon name="error" class="q-ml-xs" />
-        </q-badge>
+        </div>
+      </transition>
+
+      <!-- exchange rate -->
+      <div
+        class="row q-mb-none"
+        v-if="bitcoinPrice"
+        :class="{ invisible: hideBalance }"
+      >
+        <div class="col-12">
+          <span class="q-my-none q-py-none text-weight-regular">
+            Exchange rate:
+            <b>
+              <AnimatedNumber
+                :value="bitcoinPrice"
+                :format="
+                  (val) => formatCurrency(val, 'USD').slice(1) + ' USD/BTC'
+                "
+                class="q-my-none q-py-none cursor-pointer"
+              />
+            </b>
+          </span>
+        </div>
       </div>
     </div>
-    <!-- mint url -->
-    <div class="row q-mt-md q-mb-none text-secondary" v-if="activeMintUrl">
-      <div class="col-12 cursor-pointer">
-        <span class="text-weight-light" @click="setTab('mints')">
-          Mint: <b>{{ activeMintLabel }}</b>
-        </span>
+    <div v-else>
+      <transition
+        appear
+        enter-active-class="animated fadeInDown"
+        leave-active-class="animated fadeInDown"
+        mode="out-in"
+      >
+        <q-carousel
+          v-model="this.activeUnit"
+          transition-prev="jump-up"
+          transition-next="jump-up"
+          swipeable
+          animated
+          :height="$q.screen.width < 390 ? '130px' : '80px'"
+          control-color="primary"
+          class="bg-transparent rounded-borders q-mb-xl q-mt-xl text-primary"
+        >
+          <!-- make a q-carousel-slide with v-for for all possible units -->
+          <q-carousel-slide
+            v-for="unit in balancesOptions"
+            :key="unit.value"
+            :name="unit.value"
+            class="q-pt-none"
+          >
+            <div class="row">
+              <div class="col-12">
+                <h3
+                  class="q-my-none q-py-none cursor-pointer"
+                  @click="toggleHideBalance"
+                >
+                  <strong>
+                    <AnimatedNumber
+                      :value="getTotalBalance"
+                      :format="(val) => formatCurrency(val, activeUnit)"
+                      class="q-my-none q-py-none cursor-pointer"
+                    />
+                  </strong>
+                </h3>
+                <div v-if="bitcoinPrice">
+                  <strong v-if="this.activeUnit == 'sat'">
+                    <AnimatedNumber
+                      :value="(bitcoinPrice / 100000000) * getTotalBalance"
+                      :format="(val) => formatCurrency(val, 'USD')"
+                    />
+                  </strong>
+                  <strong
+                    v-if="this.activeUnit == 'usd' || this.activeUnit == 'eur'"
+                  >
+                    <AnimatedNumber
+                      :value="
+                        (getTotalBalance / 100 / bitcoinPrice) * 100000000
+                      "
+                      :format="(val) => formatCurrency(val, 'sat')"
+                    />
+                  </strong>
+                  <q-tooltip>
+                    {{ formatCurrency(bitcoinPrice, "USD").slice(1) }}
+                    USD/BTC</q-tooltip
+                  >
+                </div>
+              </div>
+            </div>
+          </q-carousel-slide>
+        </q-carousel>
+      </transition>
+      <div
+        v-if="activeMint().mint.errored"
+        class="row q-mt-md q-mb-none text-secondary"
+      >
+        <div class="col-12">
+          <q-badge outline color="red" class="q-mr-xs q-mt-sm text-weight-bold">
+            Mint error
+            <q-icon name="error" class="q-ml-xs" />
+          </q-badge>
+        </div>
       </div>
-    </div>
-    <!-- mint balance -->
-    <div class="row q-mb-none text-secondary" v-if="mints.length > 1">
-      <div class="col-12">
-        <span class="q-my-none q-py-none text-weight-regular">
-          Balance:
-          <b>
-            <AnimatedNumber
-              :value="getActiveBalance"
-              :format="(val) => formatCurrency(val, activeUnit)"
-              class="q-my-none q-py-none cursor-pointer"
-            />
-          </b>
-        </span>
+      <!-- mint url -->
+      <div class="row q-mt-md q-mb-none text-secondary" v-if="activeMintUrl">
+        <div class="col-12 cursor-pointer">
+          <span class="text-weight-light" @click="setTab('mints')">
+            Mint: <b>{{ activeMintLabel }}</b>
+          </span>
+        </div>
       </div>
-    </div>
-    <!-- exchange rate -->
-    <div class="row q-mb-none text-secondary" v-if="bitcoinPrice">
-      <div class="col-12">
-        <span class="q-my-none q-py-none text-weight-regular">
-          Exchange rate:
-          <b>
-            <AnimatedNumber
-              :value="bitcoinPrice"
-              :format="
-                (val) => formatCurrency(val, 'USD').slice(1) + ' USD/BTC'
-              "
-              class="q-my-none q-py-none cursor-pointer"
-            />
-          </b>
-        </span>
+      <!-- mint balance -->
+      <div class="row q-mb-none text-secondary" v-if="mints.length > 1">
+        <div class="col-12">
+          <span class="q-my-none q-py-none text-weight-regular">
+            Balance:
+            <b>
+              <AnimatedNumber
+                :value="getActiveBalance"
+                :format="(val) => formatCurrency(val, activeUnit)"
+                class="q-my-none q-py-none cursor-pointer"
+              />
+            </b>
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -265,6 +269,7 @@ export default defineComponent({
     ...mapState(usePriceStore, ["bitcoinPrice"]),
     ...mapWritableState(useMintsStore, ["activeUnit"]),
     ...mapWritableState(useUiStore, ["hideBalance", "lastBalanceCached"]),
+    ...mapState(useSettingsStore, ["bitcreditEnableCombinedBalanceView"]),
     pendingBalance: function () {
       return -this.historyTokens
         .filter((t) => t.status == "pending")
