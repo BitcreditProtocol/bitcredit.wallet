@@ -26,11 +26,75 @@
         </transition>
       </div>
     </div>
+
     <transition
       appear
       enter-active-class="animated fadeInDown"
       leave-active-class="animated fadeInDown"
       mode="out-in"
+      v-if="1 === 2"
+    >
+      <div>
+        <div
+          v-for="unit in combinedBalanceOptionsOfAllMints"
+          :key="unit.value"
+          class="row"
+        >
+          <div class="col-12 q-mb-sm">
+            <div v-if="unit.value === activeUnit">
+              <h3
+                class="q-my-none q-py-none cursor-pointer"
+                @click="toggleHideBalance"
+              >
+                <strong>
+                  <AnimatedNumber
+                    :value="getCombinedTotalBalancesOfAllMints[unit.value]"
+                    :format="(val) => formatCurrency(val, unit.value)"
+                    class="q-my-none q-py-none cursor-pointer"
+                  />
+                </strong>
+              </h3>
+            </div>
+            <div v-else>
+              <h4
+                class="q-my-none q-py-none cursor-pointer"
+                @click="toggleHideBalance"
+              >
+                <AnimatedNumber
+                  :value="getCombinedTotalBalancesOfAllMints[unit.value]"
+                  :format="(val) => formatCurrency(val, unit.value)"
+                  class="q-my-none q-py-none cursor-pointer"
+                />
+              </h4>
+            </div>
+            <div v-if="bitcoinPrice">
+              <strong
+                v-if="this.activeUnit == 'sat' || this.activeUnit == 'crsat'"
+              >
+                <AnimatedNumber
+                  :value="
+                    (bitcoinPrice / 100000000) *
+                    getCombinedTotalBalancesOfAllMints[unit.value]
+                  "
+                  :format="(val) => formatCurrency(val, 'USD')"
+                />
+              </strong>
+              <q-tooltip>
+                {{ formatCurrency(bitcoinPrice, "USD").slice(1) }}
+                USD/BTC</q-tooltip
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition
+      appear
+      enter-active-class="animated fadeInDown"
+      leave-active-class="animated fadeInDown"
+      mode="out-in"
+      v-else
     >
       <q-carousel
         v-model="this.activeUnit"
@@ -122,6 +186,23 @@
         </span>
       </div>
     </div>
+    <!-- exchange rate -->
+    <div class="row q-mb-none text-secondary" v-if="bitcoinPrice">
+      <div class="col-12">
+        <span class="q-my-none q-py-none text-weight-regular">
+          Exchange rate:
+          <b>
+            <AnimatedNumber
+              :value="bitcoinPrice"
+              :format="
+                (val) => formatCurrency(val, 'USD').slice(1) + ' USD/BTC'
+              "
+              class="q-my-none q-py-none cursor-pointer"
+            />
+          </b>
+        </span>
+      </div>
+    </div>
   </div>
   <!-- pending -->
   <div class="row q-mt-xs q-mb-none" v-if="pendingBalance > 0">
@@ -148,7 +229,7 @@
 import { defineComponent, ref } from "vue";
 import { getShortUrl } from "src/js/wallet-helpers";
 import { mapState, mapWritableState, mapActions } from "pinia";
-import { useMintsStore } from "stores/mints";
+import { useMintsStore, MintClass } from "stores/mints";
 import { useSettingsStore } from "stores/settings";
 import { useTokensStore } from "stores/tokens";
 import { useUiStore } from "stores/ui";
@@ -221,6 +302,17 @@ export default defineComponent({
         .reduce((sum, el) => (sum += el.amount), 0);
       return balance;
     },
+    getCombinedTotalBalancesOfAllMints: function () {
+      return this.computeCombinedTotalBalancesOfAllMints();
+    },
+    combinedBalanceOptionsOfAllMints: function () {
+      return Object.entries(this.getCombinedTotalBalancesOfAllMints).map(
+        ([key, _]) => ({
+          label: key,
+          value: key,
+        })
+      );
+    },
   },
   data() {
     return {
@@ -241,6 +333,25 @@ export default defineComponent({
     },
     toggleHideBalance() {
       this.hideBalance = !this.hideBalance;
+    },
+    computeCombinedTotalBalancesOfAllMints: function () {
+      const mints = this.mints.map((it) => new MintClass(it));
+      const combinedBalancesOfAllMints = mints
+        .map((it) => it.allBalances)
+        .reduce((acc, balanceObj) => {
+          Object.entries(balanceObj).forEach(([key, val]) => {
+            acc[key] = acc[key] === undefined ? val : acc[key] + val;
+          });
+
+          return acc;
+        }, {});
+
+      return combinedBalancesOfAllMints;
+    },
+    getCombinedTotalBalanceOfAllMintsByCurrency: function (currency) {
+      this.getCombinedTotalBalancesOfAllMints();
+
+      return combinedBalancesOfAllMints;
     },
   },
 });
