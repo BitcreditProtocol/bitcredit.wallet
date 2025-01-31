@@ -40,18 +40,25 @@
             :key="unit.value"
             class="row"
           >
-            <div class="col-12 q-mb-sm">
+            <div class="col-12 q-mb-lg">
               <div v-if="unit.value === activeUnit">
                 <h3
                   class="q-my-none q-py-none cursor-pointer text-primary"
                   @click="toggleHideBalance"
                 >
-                  <strong>
+                  <strong
+                    class="flex gap-1 justify-center items-center q-my-none q-py-none"
+                  >
                     <AnimatedNumber
                       :value="getCombinedTotalBalancesOfAllMints[unit.value]"
-                      :format="(val) => formatCurrency(val, unit.value)"
-                      class="q-my-none q-py-none cursor-pointer"
+                      :format="(val) => formatCurrency(val, '').trim()"
+                      class="cursor-pointer"
                     />
+                    <span
+                      v-if="!hideBalance"
+                      style="margin-left: 8px; font-size: 18px"
+                      >{{ unit.value }}</span
+                    >
                   </strong>
                 </h3>
               </div>
@@ -60,11 +67,20 @@
                   class="q-my-none q-py-none cursor-pointer text-white"
                   @click="toggleHideBalance"
                 >
-                  <AnimatedNumber
-                    :value="getCombinedTotalBalancesOfAllMints[unit.value]"
-                    :format="(val) => formatCurrency(val, unit.value)"
-                    class="q-my-none q-py-none cursor-pointer"
-                  />
+                  <div
+                    class="flex gap-1 justify-center items-center q-my-none q-py-none"
+                  >
+                    <AnimatedNumber
+                      :value="getCombinedTotalBalancesOfAllMints[unit.value]"
+                      :format="(val) => formatCurrency(val, '').trim()"
+                      class="cursor-pointer"
+                    />
+                    <span
+                      v-if="!hideBalance"
+                      style="margin-left: 8px; font-size: 18px"
+                      >{{ unit.value }}</span
+                    >
+                  </div>
                 </h4>
               </div>
               <div v-if="bitcoinPrice" :class="{ invisible: hideBalance }">
