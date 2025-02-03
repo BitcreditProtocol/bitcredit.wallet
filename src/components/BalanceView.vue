@@ -35,66 +35,69 @@
         mode="out-in"
       >
         <div class="bg-transparent rounded-borders q-mb-xl q-mt-xl">
-          <div
-            v-for="unit in combinedBalanceOptionsOfAllMints"
-            :key="unit.value"
-            class="row"
-          >
-            <div class="col-12 q-mb-lg">
-              <div v-if="unit.value === activeUnit">
-                <h3
-                  class="q-my-none q-py-none cursor-pointer text-primary"
-                  @click="toggleHideBalance"
+          <div class="">
+            <h3
+              class="q-my-none q-py-none cursor-pointer text-primary"
+              @click="toggleHideBalance"
+            >
+              <strong
+                class="flex gap-1 justify-center items-center q-my-none q-py-none"
+              >
+                <AnimatedNumber
+                  :value="bitcreditTotalBalances.total"
+                  :format="(val) => formatCurrency(val, '').trim()"
+                  class="cursor-pointer"
+                />
+                <span v-if="!hideBalance" style="margin-left: 0.75rem"
+                  >sat</span
                 >
-                  <strong
-                    class="flex gap-1 justify-center items-center q-my-none q-py-none"
-                  >
-                    <AnimatedNumber
-                      :value="getCombinedTotalBalancesOfAllMints[unit.value]"
-                      :format="(val) => formatCurrency(val, '').trim()"
-                      class="cursor-pointer"
-                    />
-                    <span
-                      v-if="!hideBalance"
-                      style="margin-left: 8px; font-size: 18px"
-                      >{{ unit.value }}</span
-                    >
-                  </strong>
-                </h3>
-              </div>
-              <div v-else>
-                <h4
-                  class="q-my-none q-py-none cursor-pointer text-white"
-                  @click="toggleHideBalance"
-                >
-                  <div
-                    class="flex gap-1 justify-center items-center q-my-none q-py-none"
-                  >
-                    <AnimatedNumber
-                      :value="getCombinedTotalBalancesOfAllMints[unit.value]"
-                      :format="(val) => formatCurrency(val, '').trim()"
-                      class="cursor-pointer"
-                    />
-                    <span
-                      v-if="!hideBalance"
-                      style="margin-left: 8px; font-size: 18px"
-                      >{{ unit.value }}</span
-                    >
+              </strong>
+            </h3>
+
+            <div v-if="bitcoinPrice" :class="{ invisible: hideBalance }">
+              <strong>
+                <AnimatedNumber
+                  :value="
+                    (bitcoinPrice / 100_000_000) * bitcreditTotalBalances.total
+                  "
+                  :format="(val) => formatCurrency(val, 'USD')"
+                />
+              </strong>
+            </div>
+          </div>
+
+          <div :class="{ invisible: hideBalance }">
+            <div class="row">
+              <hr class="q-my-md col-3" />
+            </div>
+
+            <div class="row justify-center text-right">
+              <div class="flex" style="font-size: 18px">
+                <div class="row items-center">
+                  <div class="col-9">
+                    <strong class="q-my-none q-py-none text-white">
+                      <AnimatedNumber
+                        :value="bitcreditTotalBalances.crsat"
+                        :format="(val) => formatCurrency(val, '').trim()"
+                      />
+                    </strong>
                   </div>
-                </h4>
-              </div>
-              <div v-if="bitcoinPrice" :class="{ invisible: hideBalance }">
-                <strong
-                  v-if="this.activeUnit == 'sat' || this.activeUnit == 'crsat'"
-                >
-                  <AnimatedNumber
-                    :value="
-                      (bitcoinPrice / 100000000) *
-                      getCombinedTotalBalancesOfAllMints[unit.value]
-                    "
-                    :format="(val) => formatCurrency(val, 'USD')"
-                  />
-                </strong>
+                  <div class="col-3">
+                    <span style="margin-left: 0.5rem">crsat</span>
+                  </div>
+
+                  <div class="col-9">
+                    <strong class="q-my-none q-py-none text-white">
+                      <AnimatedNumber
+                        :value="bitcreditTotalBalances.sat"
+                        :format="(val) => formatCurrency(val, '').trim()"
+                      />
+                    </strong>
+                  </div>
+                  <div class="col-3">
+                    <span style="margin-left: 0.5rem">drsat</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -323,16 +326,26 @@ export default defineComponent({
         .reduce((sum, el) => (sum += el.amount), 0);
       return balance;
     },
-    getCombinedTotalBalancesOfAllMints: function () {
+    getCombinedTotalBalancesOfAllMintsByCurrency: function () {
       return this.computeCombinedTotalBalancesOfAllMints();
     },
+    bitcreditTotalBalances: function () {
+      const balances = this.computeCombinedTotalBalancesOfAllMints();
+      const debitSatBalance = balances["sat"] || 0;
+      const creditSatBalance = balances["crsat"] || 0;
+      return {
+        total: debitSatBalance + creditSatBalance,
+        sat: debitSatBalance,
+        crsat: creditSatBalance,
+      };
+    },
     combinedBalanceOptionsOfAllMints: function () {
-      return Object.entries(this.getCombinedTotalBalancesOfAllMints).map(
-        ([key, _]) => ({
-          label: key,
-          value: key,
-        })
-      );
+      return Object.entries(
+        this.getCombinedTotalBalancesOfAllMintsByCurrency
+      ).map(([key, _]) => ({
+        label: key,
+        value: key,
+      }));
     },
   },
   data() {
@@ -366,11 +379,6 @@ export default defineComponent({
 
           return acc;
         }, {});
-
-      return combinedBalancesOfAllMints;
-    },
-    getCombinedTotalBalanceOfAllMintsByCurrency: function (currency) {
-      this.getCombinedTotalBalancesOfAllMints();
 
       return combinedBalancesOfAllMints;
     },
