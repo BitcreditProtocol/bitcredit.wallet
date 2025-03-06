@@ -93,11 +93,12 @@
           <q-item-label caption>Terms of Service</q-item-label>
         </q-item-section>
       </q-item>
-      <q-item-label header>Links </q-item-label>
+      <q-item-label header class="hidden">Links </q-item-label>
       <EssentialLink
         v-for="link in essentialLinks"
         :key="link.title"
         v-bind="link"
+        class="hidden"
       />
     </q-list>
   </q-drawer>
