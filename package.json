@@ -1,9 +1,9 @@
 {
-  "name": "cashu",
+  "name": "bitcredit",
   "version": "0.0.1",
-  "description": "Cashu.me Wallet",
-  "productName": "Cashu.me",
-  "author": "cashu.me",
+  "description": "Bitcredit Wallet",
+  "productName": "Bitcredit",
+  "author": "bitcredit",
   "private": true,
   "scripts": {
     "dev": "quasar dev",

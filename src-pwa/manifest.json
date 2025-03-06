@@ -1,7 +1,7 @@
 {
-  "name": "Cashu.me",
-  "short_name": "Cashu.me",
-  "description": "A Cashu Ecash wallet for the web.",
+  "name": "Bitcredit",
+  "short_name": "Bitcredit",
+  "description": "A Ecash wallet for the web.",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#000000",
